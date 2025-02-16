@@ -1,0 +1,120 @@
+package giangvienrepository;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.ArrayList;
+
+public class GiangVienServices {
+    
+    // Lấy tất cả giảng viên từ database
+    public ArrayList<GiangVien> getAll() {
+        ArrayList<GiangVien> lstGVs = new ArrayList<>();
+        String sql = "SELECT ma, ten, loai, tuoi, bac, gioi_tinh FROM giang_vien";
+        
+        try (Connection con = DBConnect.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+             
+            while (rs.next()) {
+                GiangVien gv = new GiangVien(
+                    rs.getString("ma"),
+                    rs.getString("ten"),
+                    rs.getString("loai"),
+                    rs.getInt("tuoi"),
+                    rs.getInt("bac"),
+                    rs.getInt("gioi_tinh")
+                );
+                lstGVs.add(gv);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return lstGVs;
+    }
+
+    // Thêm giảng viên vào database
+    public boolean addGiangVien(GiangVien gv) {
+        String sql = "INSERT INTO giang_vien (ma, ten, loai, tuoi, bac, gioi_tinh) VALUES (?, ?, ?, ?, ?, ?)";
+        
+        try (Connection con = DBConnect.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+             
+            ps.setString(1, gv.getMa());
+            ps.setString(2, gv.getTen());
+            ps.setString(3, gv.getLoai());
+            ps.setInt(4, gv.getTuoi());
+            ps.setInt(5, gv.getBac());
+            ps.setInt(6, gv.getGioiTinh());
+
+            return ps.executeUpdate() > 0; // Trả về true nếu thêm thành công
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // Cập nhật thông tin giảng viên trong database
+    public boolean updateGiangVien(String ma, GiangVien gv) {
+        String sql = "UPDATE giang_vien SET ten=?, loai=?, tuoi=?, bac=?, gioi_tinh=? WHERE ma=?";
+        
+        try (Connection con = DBConnect.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+             
+            ps.setString(1, gv.getTen());
+            ps.setString(2, gv.getLoai());
+            ps.setInt(3, gv.getTuoi());
+            ps.setInt(4, gv.getBac());
+            ps.setInt(5, gv.getGioiTinh());
+            ps.setString(6, ma);
+
+            return ps.executeUpdate() > 0; // Trả về true nếu cập nhật thành công
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // Xóa giảng viên theo mã
+    public boolean deleteGiangVien(String ma) {
+        String sql = "DELETE FROM giang_vien WHERE ma=?";
+        
+        try (Connection con = DBConnect.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+             
+            ps.setString(1, ma);
+
+            return ps.executeUpdate() > 0; // Trả về true nếu xóa thành công
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // Tìm kiếm giảng viên theo tên
+    public ArrayList<GiangVien> searchGiangVien(String name) {
+        ArrayList<GiangVien> result = new ArrayList<>();
+        String sql = "SELECT ma, ten, loai, tuoi, bac, gioi_tinh FROM giang_vien WHERE ten LIKE ?";
+        
+        try (Connection con = DBConnect.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+             
+            ps.setString(1, "%" + name + "%");
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                result.add(new GiangVien(
+                    rs.getString("ma"),
+                    rs.getString("ten"),
+                    rs.getString("loai"),
+                    rs.getInt("tuoi"),
+                    rs.getInt("bac"),
+                    rs.getInt("gioi_tinh")
+                ));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+}
